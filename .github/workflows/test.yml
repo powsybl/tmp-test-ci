@@ -1,0 +1,35 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+  run-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        name: Generate app token
+        with:
+          app-id: ${{ vars.POWSYBL_ACTIONS_APPID }}
+          private-key: ${{ secrets.POWSYBL_ACTIONS_SECRET }}
+          owner: powsybl
+
+      - name: Checkout sources
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          repository: powsybl/powsybl-network-store
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Create local commit and tag
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git push --force-with-lease origin 49f657d997d3a75d1a204220eb4367e0c1c144d4:main
+
+      - name: DOIT
+        run: echo "HI ${{github.actor}}"
+
